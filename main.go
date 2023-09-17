@@ -1,5 +1,7 @@
 package kloud
 
-func main(){
-	
+import "kloud/db"
+
+func main() {
+	db.UseBadgerDB()
 }
