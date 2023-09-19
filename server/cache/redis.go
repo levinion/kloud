@@ -1,8 +1,8 @@
 package cache
 
 import (
-	"kloud/constant"
 	"context"
+	"kloud/server/constant"
 	"time"
 
 	"github.com/go-redis/redis/v8"

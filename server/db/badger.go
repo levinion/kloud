@@ -1,7 +1,7 @@
 package db
 
 import (
-	"kloud/constant"
+	"kloud/server/constant"
 	"os"
 	"path/filepath"
 
