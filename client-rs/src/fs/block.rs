@@ -1,10 +1,9 @@
 use super::file::File;
 
-#[derive(Clone)]
+#[derive(Clone, serde::Deserialize, serde::Serialize, Debug)]
 pub struct Block {
-    pub hash: String,
-    pub belong: Vec<File>,
-    pub content: String,
+    pub hash: String,       // blake3 + base64
+    pub content: String,    // zstd default + base64
 }
 
 impl Block {
@@ -12,16 +11,16 @@ impl Block {
     pub fn new(data: String) -> Self {
         let hash = blake3::hash(data.as_bytes()).to_string();
         let base = base64::encode(hash);
+        let content = base64::encode(zstd::encode_all(data.as_bytes(),0).unwrap());
         Self {
             hash: base,
-            belong: vec![],
-            content: data,
+            content: content,
         }
     }
 }
 
-impl PartialEq for Block{
+impl PartialEq for Block {
     fn eq(&self, other: &Self) -> bool {
-        self.hash==other.hash
+        self.hash == other.hash
     }
 }

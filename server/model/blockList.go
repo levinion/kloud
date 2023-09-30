@@ -1,7 +1,11 @@
 package model
 
+import (
+	"bytes"
+)
+
 type BlockList struct {
-	list []*Block
+	List []*Block `json:"list"`
 }
 
 func NewBlockList() *BlockList {
@@ -11,34 +15,15 @@ func NewBlockList() *BlockList {
 }
 
 func (b *BlockList) Append(block *Block) *BlockList {
-	b.list = append(b.list, block)
+	b.List = append(b.List, block)
 	return b
 }
 
-func (b *BlockList) IntoHashMap() map[string]struct{} {
-	m := make(map[string]struct{})
-	for _, v := range b.list {
-		m[string(v.hash)] = struct{}{}
+func (b *BlockList) GetContent() []byte {
+	buf := bytes.NewBuffer([]byte{})
+	for _, block := range b.List {
+		content := block.GetContent()
+		buf.Write(content)
 	}
-	return m
-}
-
-func (b *BlockList) Diff(other *BlockList) *BlockList {
-	m := other.IntoHashMap()
-	diff := NewBlockList()
-	// 查找不存在于云端的块，此即为差异块
-	for _, v := range b.list {
-		if _, ok := m[string(v.hash)]; !ok {
-			diff.list = append(diff.list, v)
-		}
-	}
-	return diff
-}
-
-func (b *BlockList) IntoHashSlice() [][]byte {
-	r := make([][]byte, 0)
-	for _, v := range b.list {
-		r = append(r, v.hash)
-	}
-	return r
+	return buf.Bytes()
 }

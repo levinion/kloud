@@ -7,7 +7,8 @@ import (
 )
 
 func Route(r *gin.Engine) *gin.Engine {
-	r.GET("/file/:user/*path", controller.GetFetchFile)
-	r.POST("/file/:user/*path", controller.PostPostFile)
+	r.GET("/file/:user/*path", controller.GetFetchOnlineFile)
+	r.POST("/file/:user/*path", controller.PostPostOnlineFile)
+	r.GET("/download/:user/*path", controller.GetDownloadFile)
 	return r
 }

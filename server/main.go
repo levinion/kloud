@@ -12,4 +12,5 @@ func main() {
 	db.UseBadgerDB()
 	r := gin.Default()
 	Route(r)
+	r.Run(":8080")
 }

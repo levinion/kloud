@@ -1,38 +1,68 @@
 package model
 
 import (
-	"bufio"
-	"os"
+	"kloud/server/db"
 	"time"
+
+	"github.com/bytedance/sonic"
 )
 
 type File struct {
-	Name    string // 文件名/路径 指向文件系统内唯一的文件
-	Hash    []byte // blake3
-	Version int64  // 版本，时间戳表示
-	blocks  *BlockList
+	User    string   `json:"user"`
+	Path    string   `json:"path"`    // 文件的云端路径
+	Version int64    `json:"version"` // 版本，时间戳表示
+	Hashs   []string `json:"hashs"`   // 块哈希列表
 }
 
-// 对文件进行分块，返回区块列表
-func (f *File) SplitBlocks() (*BlockList, error) {
-	file, err := f.Open()
-	if err != nil {
-		return nil, err
+func NewFile(user, path string) *File {
+	file := &File{
+		User:  user,
+		Path:  path,
+		Hashs: make([]string, 0),
 	}
-	defer file.Close()
-	blocks := NewBlockList()
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		data := scanner.Bytes()
-		blocks.Append(NewBlock(data))
-	}
-	return blocks, nil
+	file.updateVersion()
+	return file
 }
 
-func (f *File) UpdateVersion() {
+func (f *File) updateVersion() {
 	f.Version = time.Now().Unix()
 }
 
-func (f *File) Open() (*os.File, error) {
-	return os.Open(f.Name)
+func (f *File) Update(hashs []string) {
+	f.Hashs = hashs // 更新哈希列表
+	f.updateVersion()
+}
+
+func (f *File) UnMarshal(data []byte) *File {
+	err := sonic.Unmarshal(data, f)
+	if err != nil {
+		panic(err)
+	}
+	return f
+}
+
+func (f *File) Marshal() []byte {
+	data, err := sonic.Marshal(f)
+	if err != nil {
+		panic(err)
+	}
+	return data
+}
+
+func (f *File) GetBlocks() *BlockList {
+	blocks := NewBlockList()
+	for _, hash := range f.Hashs {
+		data, err := db.Get("blocks", []byte(hash))
+		if err != nil {
+			panic(err)
+		}
+		block := new(Block).UnMarshal(data)
+		blocks.Append(block)
+	}
+	return blocks
+}
+
+func (f *File) GetContent() []byte {
+	blocks := f.GetBlocks()
+	return blocks.GetContent()
 }
