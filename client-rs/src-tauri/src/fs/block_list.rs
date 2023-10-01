@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use super::block::Block;
 
 #[derive(Clone, serde::Deserialize, serde::Serialize, Debug)]
@@ -14,14 +16,17 @@ impl BlockList {
         self.list.push(block)
     }
 
-    pub fn diff(&self, remote_blocks_hashs: &Vec<String>) -> BlockList {
+    pub fn diff(&self, other_blocks_hashs: &Vec<String>) -> BlockList {
         let mut diff_blocks = BlockList::new();
+        let other_blocks_set: HashSet<_> = other_blocks_hashs.into_iter().collect();
         let blocks = self
             .list
             .clone()
             .into_iter()
-            .filter(|item| !remote_blocks_hashs.contains(&item.hash))
-            .collect::<Vec<Block>>();
+            .filter(|item| !other_blocks_set.contains(&item.hash)) // 列表中无法找到当前块
+            .collect::<HashSet<_>>() // 当前块不重复
+            .into_iter()
+            .collect::<Vec<_>>();
         diff_blocks.list = blocks;
         diff_blocks
     }

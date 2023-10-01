@@ -1,9 +1,9 @@
 use super::file::File;
 
-#[derive(Clone, serde::Deserialize, serde::Serialize, Debug)]
+#[derive(Clone, serde::Deserialize, serde::Serialize, Debug, Eq, Hash)]
 pub struct Block {
-    pub hash: String,       // blake3 + base64
-    pub content: String,    // zstd default + base64
+    pub hash: String,    // blake3 + base64
+    pub content: String, // zstd default + base64
 }
 
 impl Block {
@@ -11,7 +11,7 @@ impl Block {
     pub fn new(data: String) -> Self {
         let hash = blake3::hash(data.as_bytes()).to_string();
         let base = base64::encode(hash);
-        let content = base64::encode(zstd::encode_all(data.as_bytes(),0).unwrap());
+        let content = base64::encode(zstd::encode_all(data.as_bytes(), 0).unwrap());
         Self {
             hash: base,
             content: content,

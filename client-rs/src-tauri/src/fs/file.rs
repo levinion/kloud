@@ -65,10 +65,10 @@ impl File {
     pub async fn post_diff_blocks(&self, diff_blocks: &BlockList) -> anyhow::Result<()> {
         let client = reqwest::Client::new();
         let payload = PostPayload {
-            blocks_hash_list: self.blocks.get_blocks_hash_list(),
-            diff_blocks: diff_blocks.list.clone(),
+            hashs: self.blocks.get_blocks_hash_list(),
+            diffs: diff_blocks.list.clone(),
         };
-        dbg!(serde_json::to_string(&payload));
+        // dbg!(serde_json::to_string(&payload));
         let path = SERVERADDR
             .parse::<url::Url>()
             .unwrap()
@@ -103,8 +103,6 @@ fn get_blocks(filename: &String) -> BlockList {
 /// 上传的块信息
 #[derive(serde::Serialize, Debug)]
 struct PostPayload {
-    #[serde[rename="hashs"]]
-    blocks_hash_list: Vec<String>,
-    #[serde[rename="diffs"]]
-    diff_blocks: Vec<Block>,
+    hashs: Vec<String>,
+    diffs: Vec<Block>,
 }
