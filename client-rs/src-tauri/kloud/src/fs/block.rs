@@ -3,7 +3,7 @@ use super::file::File;
 #[derive(Clone, serde::Deserialize, serde::Serialize, Debug, Eq, Hash)]
 pub struct Block {
     pub hash: String,    // blake3 + base64
-    pub content: String, // zstd default + base64
+    pub content: String, // base64(二进制编码) + zstd default + base64（zstd）
 }
 
 impl Block {

@@ -1,12 +1,13 @@
+use anyhow::Ok;
+
 use super::block::Block;
 use super::block_list::BlockList;
-use std::io::{self, BufRead};
+use std::io::{self, BufRead, BufReader, Read};
 
 #[derive(Clone, Debug)]
 pub struct File {
     pub local_path: String,
-    pub remote_path: String,
-    pub hash: String,
+    pub remote_path: String, // base64
     pub version: i64,
     pub blocks: BlockList,
 }
@@ -15,17 +16,13 @@ const SERVERADDR: &str = "http://127.0.0.1:8080";
 
 impl File {
     /// 创建一个文件的抽象；分别传入本地文件路径以及云端文件路径，从而将本地文件映射到云端
-    pub fn new<T>(local: T, remote: T) -> Self
-    where
-        T: Into<String>,
-    {
-        let path: String = local.into();
-        let hash = file_hash(&path);
-        let blocks = get_blocks(&path);
+    pub fn new(local: String, remote: String) -> Self {
+        let blocks = get_blocks(&local);
+        #[allow(deprecated)]
+        let remote_base62 = base_62::encode(remote.as_bytes());
         Self {
-            local_path: path.clone(),
-            remote_path: remote.into(),
-            hash,
+            local_path: local,
+            remote_path: remote_base62,
             version: chrono::Utc::now().timestamp(),
             blocks,
         }
@@ -80,24 +77,38 @@ impl File {
     }
 }
 
-/// 根据文件内容生成当前文件哈希
-fn file_hash(filename: &String) -> String {
-    let content = std::fs::read_to_string(filename).unwrap();
-    let blake3_hash = blake3::hash(content.as_bytes());
-    #[allow(deprecated)]
-    let base64_hash = base64::encode(blake3_hash.as_bytes());
-    base64_hash
-}
-
 /// important!: 分块函数
 fn get_blocks(filename: &String) -> BlockList {
-    let f = std::fs::File::open(filename).unwrap();
-    let reader = io::BufReader::new(f);
-    let mut blocks = BlockList::new();
-    reader
-        .lines()
-        .for_each(|line| blocks.append(Block::new(line.unwrap() + "\n")));
+    let mut f = std::fs::File::open(filename).unwrap();
+    let blocks =
+        get_utf8_blocks(f.by_ref()).unwrap_or_else(|_| get_non_utf8_blocks(f.by_ref()).unwrap());
     blocks
+}
+
+fn get_utf8_blocks(file: &mut std::fs::File) -> anyhow::Result<BlockList> {
+    let reader = io::BufReader::new(file);
+    let mut blocks = BlockList::new();
+    for line in reader.lines() {
+        #[allow(deprecated)]
+        let content = base64::encode(line? + "\n");
+        blocks.append(Block::new(content));
+    }
+    Ok(blocks)
+}
+
+// TODO: 二进制文件分块
+fn get_non_utf8_blocks(file: &mut std::fs::File) -> anyhow::Result<BlockList> {
+    let mut blocks = BlockList::new();
+    let mut buffer = Vec::new();
+    file.read_to_end(&mut buffer)?;
+    #[allow(deprecated)]
+    let b64 = base64::encode(buffer.to_vec());
+    // 按4MB每块读取
+    let chunk_size = 4 * 1024 * 1024; // 4MB
+    for chunk in b64.as_bytes().chunks(chunk_size) {
+        blocks.append(Block::new(String::from_utf8(chunk.to_vec()).unwrap()));
+    }
+    Ok(blocks)
 }
 
 /// 上传的块信息

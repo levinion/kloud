@@ -1,8 +1,9 @@
 package controller
 
 import (
-	"kloud/server/db"
-	"kloud/server/model"
+	"kloud/db"
+	"kloud/model"
+	"log/slog"
 
 	"github.com/gin-gonic/gin"
 )
@@ -33,6 +34,7 @@ func PostPostOnlineFile(c *gin.Context) {
 }
 
 func updateDBBlocks(diffs []diffItem) {
+	slog.Debug("新增块", diffs)
 	for _, diff := range diffs {
 		db.Set("blocks", []byte(diff.Hash), model.NewBlock(diff.Hash, []byte(diff.Content)).Marshal())
 	}
@@ -48,6 +50,7 @@ func updateDBFile(hashs []string, user, path string) {
 		file = new(model.File).UnMarshal(rawFile)
 	}
 	file.Update(hashs)
+	slog.Debug("修改文件", file.Path)
 	db.Set("files", []byte(user+"-"+path), file.Marshal())
 }
 

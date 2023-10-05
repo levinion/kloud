@@ -1,17 +1,18 @@
+import { JSX } from "solid-js/jsx-runtime";
 import { IFile } from "../interfaces/IFile";
 import { Button } from "./basic/Button";
 
-export default function File(props: IFile) {
-    return (
-        <div class="p-1 m-auto flex flex-col items-center" onContextMenu={onRightClick()}>
-            <Button icon="solar:file-bold" height="64"></Button>
-            <p class="break-all text-black">{props.local}</p>
-        </div>
-    )
+interface FileProps extends JSX.BaseHTMLAttributes<HTMLSpanElement> {
+    file: IFile
 }
 
-function onRightClick() {
-    return (e: MouseEvent) => {
-        e.preventDefault()
-    }
+export default function File(props: FileProps) {
+    return (
+        <>
+            <div class="p-1 flex flex-col items-center text-center">
+                <Button onClick={props.onClick} onContextMenu={props.onContextMenu} icon={props.file.type==="file"?"solar:file-bold":"game-icons:files"} height="56"></Button>
+                <p class="break-word text-black w-40">{props.file.local}</p>
+            </div>
+        </>
+    )
 }

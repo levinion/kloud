@@ -1,7 +1,7 @@
 package model
 
 import (
-	"kloud/server/db"
+	"kloud/db"
 	"time"
 
 	"github.com/bytedance/sonic"

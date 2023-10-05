@@ -2,7 +2,7 @@ package model
 
 import (
 	"encoding/base64"
-	"kloud/server/db"
+	"kloud/db"
 
 	"github.com/bytedance/sonic"
 	"github.com/valyala/gozstd"

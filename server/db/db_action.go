@@ -1,6 +1,6 @@
 package db
 
-import "kloud/server/cache"
+import "kloud/cache"
 
 // 这个包是数据库操作的一些语法糖
 

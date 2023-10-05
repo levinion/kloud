@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"kloud/server/db"
-	"kloud/server/model"
+	"kloud/db"
+	"kloud/model"
 
 	"github.com/gin-gonic/gin"
 )

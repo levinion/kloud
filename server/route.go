@@ -1,7 +1,7 @@
 package main
 
 import (
-	"kloud/server/controller"
+	"kloud/controller"
 
 	"github.com/gin-gonic/gin"
 )
