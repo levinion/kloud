@@ -1,5 +1,0 @@
-package kloud
-
-func main(){
-	
-}
